@@ -1,4 +1,8 @@
+const config = require('./config')
+
+
 const http = require('http');
+
 const url = require('url');
 const { StringDecoder } = require('node:string_decoder'); 
 
@@ -6,7 +10,7 @@ const serverFunction = function (req, res) {
     // ? PATH
     const parsedUrl = url.parse(req.url, true);
     const trimmedPath = parsedUrl.pathname.trim().replace(/^\/+|\/+$/g, '')
-    const queryStringObject = parsedUrl.query;
+    console.log(trimmedPath)
     const method = req.method.toLowerCase();
     const headers = req.headers;
 
@@ -18,16 +22,29 @@ const serverFunction = function (req, res) {
 
     req.on('end', function () {
         body += decoder.end();
-      
+        const handlerMethod = router[trimmedPath] ? router[trimmedPath] : router.notFound;
+
+        handlerMethod(req,res)
     })
 
-    res.end('Hello world')
+    // res.end('Hello world')
 }
 
+const handlers = {
 
-
+}
+handlers.test = function (req, res) {
+    res.end('This is the test handler')
+}
+handlers.notFound = function (req, res) {
+    res.end('Route not found')
+}
+const router = {
+    test: handlers.test,
+    notFound: handlers.notFound
+}
 
 const server = http.createServer(serverFunction);
-server.listen(3000, function () {
-    console.log('Server listening on PORT 3000')
+server.listen(config.httpPortNo, function () {
+    console.log('Server listening on PORT '+ config.httpPortNo)
 })
